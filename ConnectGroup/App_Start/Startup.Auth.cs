@@ -1,17 +1,19 @@
-﻿using System;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin;
-using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.DataProtection;
-using Microsoft.Owin.Security.OAuth;
-using Owin;
-using ConnectGroup.Models;
-using ConnectGroup.Providers;
-
-namespace ConnectGroup
+﻿namespace ConnectGroup
 {
+	using System.Collections.Generic;
+	using System.Configuration;
+	using System;
+	using Microsoft.AspNet.Identity;
+	using Microsoft.AspNet.Identity.Owin;
+	using Microsoft.Owin;
+	using Microsoft.Owin.Security.Cookies;
+	using Microsoft.Owin.Security.Facebook;
+	using Microsoft.Owin.Security.OAuth;
+	using Owin;
+	using ConnectGroup.Models;
+	using ConnectGroup.Providers;
+
+
 	public partial class Startup
 	{
 		// Enable the application to use OAuthAuthorization. You can then secure your Web APIs
@@ -37,7 +39,6 @@ namespace ConnectGroup
 		public void ConfigureAuth(IAppBuilder app)
 		{
 			// Configure the db context and user manager to use a single instance per request
-			app.CreatePerOwinContext(ApplicationDbContext.Create);
 			app.CreatePerOwinContext<ApplicationUserManager>(ApplicationUserManager.Create);
 
 			// Enable the application to use a cookie to store information for the signed in user
@@ -68,11 +69,24 @@ namespace ConnectGroup
 			//    consumerKey: "",
 			//    consumerSecret: "");
 
-			app.UseFacebookAuthentication(
-			    appId: "666389930098842",
-			    appSecret: "b22afa237549047d4a9bb4a194b25d8b");
+			var options = GetFacebookAuthenticationOptions();
+
+			app.UseFacebookAuthentication(options);
 
 			app.UseGoogleAuthentication();
+		}
+
+		private static FacebookAuthenticationOptions GetFacebookAuthenticationOptions()
+		{
+			var options = new FacebookAuthenticationOptions
+				{
+					AppId = ConfigurationManager.AppSettings["app.facebook.app-id"],
+					AppSecret = ConfigurationManager.AppSettings["app.facebook.secret"]
+				};
+
+			options.Scope.Add("email");
+			options.Scope.Add("public_profile");
+			return options;
 		}
 	}
 }
